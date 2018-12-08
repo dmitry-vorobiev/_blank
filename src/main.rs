@@ -60,15 +60,12 @@ fn run() -> Result<(), failure::Error> {
 
     use std::path::Path;
     use resources::Resources;
-    use render_gl::{Program, Texture};
+    use render_gl::Program;
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
     let shader = Program::from_res(&gl, &res, "shaders/triangle")?;
-    let texture = Texture::from_res(&gl, &res, "images/cat.png").map_err(err_msg)?;
 
     shader.bind();
-    shader.set_uniform1i("u_texture", 0);
-    texture.bind(0);
 
     let vertices: [Vertex; 3] = [
         Vertex {
