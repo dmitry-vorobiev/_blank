@@ -1,0 +1,20 @@
+[package]
+name = "opengl_rust"
+version = "0.1.0"
+authors = ["Dmitry Vorobiev <mustcheat@outlook.com>"]
+
+[dependencies]
+gl = { path = "lib/gl" }
+render_gl_derive = { path = "lib/render_gl_derive" }
+failure = "0.1"
+image = "0.20"
+
+[dependencies.sdl2]
+version = "0.31.0"
+features = ["bundled", "static-link"]
+
+[build-dependencies]
+walkdir = "2.2.7"
+
+[features]
+gl_debug = ["gl/debug"]
