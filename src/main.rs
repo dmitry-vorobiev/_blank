@@ -1,18 +1,15 @@
 extern crate sdl2;
 extern crate gl;
 extern crate image;
-
-#[macro_use]
-extern crate failure;
-
-#[macro_use]
-extern crate render_gl_derive;
+extern crate vec_2_10_10_10;
+#[macro_use] extern crate failure;
+#[macro_use] extern crate render_gl_derive;
 
 pub mod render_gl;
 pub mod resources;
 pub mod utils;
 
-use render_gl::data::f32_f32_f32;
+use render_gl::data::{f32_f32_f32, u2_u10_u10_u10_rev_float};
 
 #[derive(VertexAttribPointers)]
 #[derive(Copy, Clone, Debug)]
@@ -21,7 +18,7 @@ struct Vertex {
     #[location = "0"]
     pos: f32_f32_f32,
     #[location = "1"]
-    clr: f32_f32_f32,
+    clr: u2_u10_u10_u10_rev_float,
 }
 
 fn main() {
@@ -69,17 +66,17 @@ fn run() -> Result<(), failure::Error> {
 
     let vertices: [Vertex; 3] = [
         Vertex {
-            pos: (0.5,-0.5, 0.0).into(),
-            clr: (1.0, 0.0, 0.0).into()
-        },
+            pos: (0.5, -0.5, 0.0).into(),
+            clr: (1.0, 0.0, 0.0, 1.0).into()
+        }, // bottom right
         Vertex {
-            pos: (-0.5,-0.5, 0.0).into(),
-            clr: ( 0.0, 1.0, 0.0).into()
-        },
+            pos: (-0.5, -0.5, 0.0).into(),
+            clr: (0.0, 1.0, 0.0, 1.0).into()
+        }, // bottom left
         Vertex {
-            pos: (0.0, 0.5, 0.0).into(),
-            clr: (0.0, 0.0, 1.0).into()
-        }
+            pos: (0.0,  0.5, 0.0).into(),
+            clr: (0.0, 0.0, 1.0, 1.0).into()
+        }  // top
     ];
 
     let mut vao: gl::types::GLuint = 0;
