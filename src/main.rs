@@ -57,7 +57,7 @@ fn run() -> Result<(), failure::Error> {
 
     use std::path::Path;
     use resources::Resources;
-    use render_gl::Program;
+    use render_gl::{buffer::{VertexArray, VertexBuffer}, Program};
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
     let shader = Program::from_res(&gl, &res, "shaders/triangle")?;
@@ -79,33 +79,17 @@ fn run() -> Result<(), failure::Error> {
         }  // top
     ];
 
-    let mut vao: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenVertexArrays(1, &mut vao);
-    }
+    let vao= VertexArray::new(&gl);
+    vao.bind();
 
-    let mut vbo: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenBuffers(1, &mut vbo);
-    }
-
-    unsafe {
-        gl.BindVertexArray(vao);
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl.BufferData(
-            gl::ARRAY_BUFFER,
-            (vertices.len() * std::mem::size_of::<Vertex>()) as gl::types::GLsizeiptr,
-            vertices.as_ptr() as *const gl::types::GLvoid,
-            gl::STATIC_DRAW,
-        );
-    }
+    let vbo = VertexBuffer::new(&gl);
+    vbo.bind();
+    vbo.static_draw_data(&vertices);
 
     Vertex::vertex_attrib_pointers(&gl);
 
-    unsafe {
-        gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-        gl.BindVertexArray(0);
-    }
+    vao.unbind();
+    vbo.unbind();
 
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
@@ -116,9 +100,9 @@ fn run() -> Result<(), failure::Error> {
                 _ => {},
             }
         }
+        vao.bind();
         unsafe {
             gl.Clear(gl::COLOR_BUFFER_BIT);
-            gl.BindVertexArray(vao);
             gl.DrawArrays(gl::TRIANGLES, 0, 3);
         }
         window.gl_swap_window();
