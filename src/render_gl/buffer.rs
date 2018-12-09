@@ -1,32 +1,51 @@
 use gl::{self, types::{GLuint, GLvoid, GLsizeiptr}};
 
-pub struct VertexBuffer {
-    gl: gl::Gl,
-    vbo: gl::types::GLuint,
+pub trait BufferType {
+    const BUFFER_TYPE: GLuint;
 }
 
-impl VertexBuffer {
-    pub fn new(gl: &gl::Gl) -> VertexBuffer {
+pub struct VertexBufferType;
+impl BufferType for VertexBufferType {
+    const BUFFER_TYPE: gl::types::GLuint = gl::ARRAY_BUFFER;
+}
+
+pub struct ElementArrayType;
+impl BufferType for ElementArrayType {
+    const BUFFER_TYPE: gl::types::GLuint = gl::ELEMENT_ARRAY_BUFFER;
+}
+
+pub type VertexBuffer = Buffer<VertexBufferType>;
+pub type ElementArray = Buffer<ElementArrayType>;
+
+pub struct Buffer<B> where B: BufferType {
+    gl: gl::Gl,
+    vbo: GLuint,
+    _marker: ::std::marker::PhantomData<B>,
+}
+
+impl<B> Buffer<B> where B: BufferType {
+    pub fn new(gl: &gl::Gl) -> Buffer<B> {
         let mut vbo: GLuint = 0;
         unsafe {
             gl.GenBuffers(1, &mut vbo);
         }
 
-        VertexBuffer {
+        Buffer {
             gl: gl.clone(),
-            vbo
+            vbo,
+            _marker: ::std::marker::PhantomData,
         }
     }
 
     pub fn bind(&self) {
         unsafe {
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, self.vbo);
+            self.gl.BindBuffer(B::BUFFER_TYPE, self.vbo);
         }
     }
 
     pub fn unbind(&self) {
         unsafe {
-            self.gl.BindBuffer(gl::ARRAY_BUFFER, 0);
+            self.gl.BindBuffer(B::BUFFER_TYPE, 0);
         }
     }
 
@@ -42,7 +61,7 @@ impl VertexBuffer {
     }
 }
 
-impl Drop for VertexBuffer {
+impl<B> Drop for Buffer<B> where B: BufferType {
     fn drop(&mut self) {
         unsafe {
             self.gl.DeleteBuffers(1, &mut self.vbo);
