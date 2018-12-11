@@ -8,6 +8,7 @@ extern crate vec_2_10_10_10;
 pub mod render_gl;
 pub mod resources;
 pub mod utils;
+mod triangle;
 
 use render_gl::data::{f32_f32_f32, u2_u10_u10_u10_rev_float};
 
@@ -57,39 +58,9 @@ fn run() -> Result<(), failure::Error> {
 
     use std::path::Path;
     use resources::Resources;
-    use render_gl::{buffer::{VertexArray, VertexBuffer}, Program};
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
-    let shader = Program::from_res(&gl, &res, "shaders/triangle")?;
-
-    shader.bind();
-
-    let vertices: [Vertex; 3] = [
-        Vertex {
-            pos: (0.5, -0.5, 0.0).into(),
-            clr: (1.0, 0.0, 0.0, 1.0).into()
-        }, // bottom right
-        Vertex {
-            pos: (-0.5, -0.5, 0.0).into(),
-            clr: (0.0, 1.0, 0.0, 1.0).into()
-        }, // bottom left
-        Vertex {
-            pos: (0.0,  0.5, 0.0).into(),
-            clr: (0.0, 0.0, 1.0, 1.0).into()
-        }  // top
-    ];
-
-    let vao= VertexArray::new(&gl);
-    vao.bind();
-
-    let vbo = VertexBuffer::new(&gl);
-    vbo.bind();
-    vbo.static_draw_data(&vertices);
-
-    Vertex::vertex_attrib_pointers(&gl);
-
-    vao.unbind();
-    vbo.unbind();
+    let triangle = triangle::Triangle::new(&res, &gl)?;
 
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
@@ -100,11 +71,10 @@ fn run() -> Result<(), failure::Error> {
                 _ => {},
             }
         }
-        vao.bind();
         unsafe {
             gl.Clear(gl::COLOR_BUFFER_BIT);
-            gl.DrawArrays(gl::TRIANGLES, 0, 3);
         }
+        triangle.render(&gl);
         window.gl_swap_window();
     }
 

@@ -6,12 +6,12 @@ pub trait BufferType {
 
 pub struct VertexBufferType;
 impl BufferType for VertexBufferType {
-    const BUFFER_TYPE: gl::types::GLuint = gl::ARRAY_BUFFER;
+    const BUFFER_TYPE: GLuint = gl::ARRAY_BUFFER;
 }
 
 pub struct ElementArrayType;
 impl BufferType for ElementArrayType {
-    const BUFFER_TYPE: gl::types::GLuint = gl::ELEMENT_ARRAY_BUFFER;
+    const BUFFER_TYPE: GLuint = gl::ELEMENT_ARRAY_BUFFER;
 }
 
 pub type VertexBuffer = Buffer<VertexBufferType>;
