@@ -6,6 +6,7 @@ authors = ["Dmitry Vorobiev <mustcheat@outlook.com>"]
 [dependencies]
 failure = "0.1"
 image = "0.20"
+nalgebra = "0.16"
 vec-2-10-10-10 = "0.1"
 
 [dependencies.gl]

@@ -1,6 +1,7 @@
-extern crate sdl2;
 extern crate gl;
+extern crate sdl2;
 extern crate image;
+extern crate nalgebra;
 extern crate vec_2_10_10_10;
 #[macro_use] extern crate failure;
 #[macro_use] extern crate render_gl_derive;
@@ -10,6 +11,7 @@ pub mod resources;
 mod triangle;
 mod debug;
 
+use nalgebra as na;
 use render_gl::data::{f32_f32_f32, u2_u10_u10_u10_rev_float};
 
 #[derive(VertexAttribPointers)]
@@ -51,12 +53,10 @@ fn run() -> Result<(), failure::Error> {
         |s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void
     );
     let mut viewport = render_gl::Viewport::for_window(900, 700);
-    viewport.set_used(&gl);
+    let color_buffer = render_gl::ColorBuffer::from_color(na::Vector3::new(0.3, 0.3, 0.5));
 
-
-    unsafe {
-        gl.ClearColor(0.3, 0.3, 0.5, 1.0);
-    }
+    viewport.enable(&gl);
+    color_buffer.enable(&gl);
 
     use std::path::Path;
     use resources::Resources;
@@ -72,14 +72,12 @@ fn run() -> Result<(), failure::Error> {
                 Event::Quit {..} => break 'main,
                 Event::Window {win_event: WindowEvent::Resized(w, h), ..} => {
                     viewport.update_size(w, h);
-                    viewport.set_used(&gl);
+                    viewport.enable(&gl);
                 },
                 _ => {},
             }
         }
-        unsafe {
-            gl.Clear(gl::COLOR_BUFFER_BIT);
-        }
+        color_buffer.clear(&gl);
         triangle.render(&gl);
         window.gl_swap_window();
     }

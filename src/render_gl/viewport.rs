@@ -22,7 +22,7 @@ impl Viewport {
         self.h = h;
     }
 
-    pub fn set_used(&self, gl: &gl::Gl) {
+    pub fn enable(&self, gl: &gl::Gl) {
         unsafe {
             gl.Viewport(self.x, self.y, self.w, self.h);
         }
