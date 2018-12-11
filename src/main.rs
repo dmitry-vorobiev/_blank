@@ -7,8 +7,8 @@ extern crate vec_2_10_10_10;
 
 pub mod render_gl;
 pub mod resources;
-pub mod utils;
 mod triangle;
+mod debug;
 
 use render_gl::data::{f32_f32_f32, u2_u10_u10_u10_rev_float};
 
@@ -24,7 +24,7 @@ struct Vertex {
 
 fn main() {
     if let Err(e) = run() {
-        println!("{}", utils::errors::failure_to_string(e));
+        println!("{}", debug::failure_to_string(e));
     }
 }
 
