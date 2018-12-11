@@ -50,9 +50,11 @@ fn run() -> Result<(), failure::Error> {
     let gl = gl::Gl::load_with(
         |s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void
     );
+    let mut viewport = render_gl::Viewport::for_window(900, 700);
+    viewport.set_used(&gl);
+
 
     unsafe {
-        gl.Viewport(0, 0, 900, 700);
         gl.ClearColor(0.3, 0.3, 0.5, 1.0);
     }
 
@@ -65,9 +67,13 @@ fn run() -> Result<(), failure::Error> {
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
         for event in event_pump.poll_iter() {
-            use sdl2::event::Event;
+            use sdl2::event::{Event, WindowEvent};
             match event {
                 Event::Quit {..} => break 'main,
+                Event::Window {win_event: WindowEvent::Resized(w, h), ..} => {
+                    viewport.update_size(w, h);
+                    viewport.set_used(&gl);
+                },
                 _ => {},
             }
         }
