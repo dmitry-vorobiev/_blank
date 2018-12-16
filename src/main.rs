@@ -52,6 +52,8 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
     let mut triangle = triangle::Triangle::new(&res, &gl)?;
+    let mut translation = na::Vector3::new(0.0, 0.0, 0.0);
+    let mut movement: [i8; 4] = [0, 0, 0, 0];
 
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
@@ -68,16 +70,33 @@ fn run() -> Result<(), failure::Error> {
                     match key {
                         Keycode::Escape => break 'main,
                         Keycode::D | Keycode::Right => {
-                            &triangle.update_pos(&na::Vector3::new(0.02, 0.0, 0.0));
+                            movement[1] = 1;
                         },
                         Keycode::A | Keycode::Left => {
-                            &triangle.update_pos(&na::Vector3::new(-0.02, 0.0, 0.0));
+                            movement[3] = 1;
                         },
                         Keycode::W | Keycode::Up => {
-                            &triangle.update_pos(&na::Vector3::new(0.0, 0.02, 0.0));
+                            movement[0] = 1;
                         },
                         Keycode::S | Keycode::Down => {
-                            &triangle.update_pos(&na::Vector3::new(0.0, -0.02, 0.0));
+                            movement[2] = 1;
+                        },
+                        _ => {},
+                    }
+                },
+                Event::KeyUp {keycode: Some(key), ..} => {
+                    match key {
+                        Keycode::D | Keycode::Right => {
+                            movement[1] = 0;
+                        },
+                        Keycode::A | Keycode::Left => {
+                            movement[3] = 0;
+                        },
+                        Keycode::W | Keycode::Up => {
+                            movement[0] = 0;
+                        },
+                        Keycode::S | Keycode::Down => {
+                            movement[2] = 0;
                         },
                         _ => {},
                     }
@@ -85,7 +104,11 @@ fn run() -> Result<(), failure::Error> {
                 _ => {},
             }
         }
+        translation.x = (movement[1] - movement[3]) as f32 * 0.02;
+        translation.y = (movement[0] - movement[2]) as f32 * 0.02;
+
         color_buffer.clear(&gl);
+        &triangle.update_pos(&translation);
         triangle.render(&gl);
         window.gl_swap_window();
     }
