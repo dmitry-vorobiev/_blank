@@ -1,4 +1,5 @@
 use gl;
+use nalgebra as na;
 use std::ffi::{CString, CStr};
 
 use resources::{self, Resources};
@@ -106,7 +107,7 @@ impl Program {
         }
     }
 
-    pub fn set_uniform1i(&self, name: &str, val: i32) {
+    pub fn set_uniform_1i(&self, name: &str, val: i32) {
         let u_loc = self.uniform_location(name);
 
         unsafe {
@@ -114,18 +115,28 @@ impl Program {
         }
     }
 
+    pub fn set_uniform_mat4f(&self, name: &str, val: &na::Matrix4<f32>) {
+        let u_loc = self.uniform_location(name);
+
+        unsafe {
+            self.gl.UniformMatrix4fv(
+                u_loc,
+                1,
+                gl::FALSE,
+                val.as_slice().as_ptr() as *const gl::types::GLfloat
+            );
+        }
+    }
+
     fn uniform_location(&self, name: &str) -> gl::types::GLint {
-        use gl::types::{GLchar, GLint};
+        use gl::types::{GLint};
 
         let location: GLint = unsafe {
             let c_name = CStr::from_bytes_with_nul_unchecked(name.as_bytes());
-            self.gl.GetUniformLocation(
-                self.id,
-                c_name.as_ptr() as *mut GLchar
-            )
+            self.gl.GetUniformLocation(self.id, c_name.as_ptr())
         };
 
-        if location != -1 {
+        if location == -1 {
             println!("[OPENGL WARN]: uniform '{}' doesn't exist", name);
         }
 

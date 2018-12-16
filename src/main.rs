@@ -12,17 +12,6 @@ mod triangle;
 mod debug;
 
 use nalgebra as na;
-use render_gl::data::{f32_f32_f32, u2_u10_u10_u10_rev_float};
-
-#[derive(VertexAttribPointers)]
-#[derive(Copy, Clone, Debug)]
-#[repr(C, packed)]
-struct Vertex {
-    #[location = "0"]
-    pos: f32_f32_f32,
-    #[location = "1"]
-    clr: u2_u10_u10_u10_rev_float,
-}
 
 fn main() {
     if let Err(e) = run() {
@@ -62,17 +51,36 @@ fn run() -> Result<(), failure::Error> {
     use resources::Resources;
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
-    let triangle = triangle::Triangle::new(&res, &gl)?;
+    let mut triangle = triangle::Triangle::new(&res, &gl)?;
 
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
         for event in event_pump.poll_iter() {
             use sdl2::event::{Event, WindowEvent};
+            use sdl2::keyboard::Keycode;
             match event {
                 Event::Quit {..} => break 'main,
                 Event::Window {win_event: WindowEvent::Resized(w, h), ..} => {
                     viewport.update_size(w, h);
                     viewport.enable(&gl);
+                },
+                Event::KeyDown {keycode: Some(key), ..} => {
+                    match key {
+                        Keycode::Escape => break 'main,
+                        Keycode::D | Keycode::Right => {
+                            &triangle.update_pos(&na::Vector3::new(0.02, 0.0, 0.0));
+                        },
+                        Keycode::A | Keycode::Left => {
+                            &triangle.update_pos(&na::Vector3::new(-0.02, 0.0, 0.0));
+                        },
+                        Keycode::W | Keycode::Up => {
+                            &triangle.update_pos(&na::Vector3::new(0.0, 0.02, 0.0));
+                        },
+                        Keycode::S | Keycode::Down => {
+                            &triangle.update_pos(&na::Vector3::new(0.0, -0.02, 0.0));
+                        },
+                        _ => {},
+                    }
                 },
                 _ => {},
             }

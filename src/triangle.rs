@@ -1,5 +1,6 @@
 use gl;
 use failure;
+use nalgebra as na;
 use render_gl::{self, buffer, data};
 use resources::Resources;
 
@@ -14,6 +15,7 @@ struct Vertex {
 }
 
 pub struct Triangle {
+    model_matrix: na::Matrix4<f32>,
     program: render_gl::Program,
     _vbo: buffer::VertexBuffer,
     vao: buffer::VertexArray,
@@ -50,14 +52,21 @@ impl Triangle {
         vbo.unbind();
 
         Ok(Triangle {
+            model_matrix: na::Matrix4::new_scaling(0.33),
             program,
             _vbo: vbo,
             vao,
         })
     }
 
+    pub fn update_pos(&mut self, vec: &na::Vector3<f32>) {
+        self.model_matrix = self.model_matrix.append_translation(vec);
+    }
+
     pub fn render(&self, gl: &gl::Gl) {
         self.program.bind();
+        self.program.set_uniform_mat4f("ModelMatrix\0", &self.model_matrix);
+
         self.vao.bind();
 
         unsafe {
