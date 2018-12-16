@@ -10,6 +10,7 @@ pub mod render_gl;
 pub mod resources;
 mod triangle;
 mod debug;
+mod input;
 
 use nalgebra as na;
 
@@ -51,61 +52,34 @@ fn run() -> Result<(), failure::Error> {
     use resources::Resources;
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
+    let mut input = input::Input::new();
     let mut triangle = triangle::Triangle::new(&res, &gl)?;
     let mut translation = na::Vector3::new(0.0, 0.0, 0.0);
-    let mut movement: [i8; 4] = [0, 0, 0, 0];
 
     let mut event_pump = sdl.event_pump().unwrap();
     'main: loop {
         for event in event_pump.poll_iter() {
             use sdl2::event::{Event, WindowEvent};
             use sdl2::keyboard::Keycode;
+
             match event {
                 Event::Quit {..} => break 'main,
                 Event::Window {win_event: WindowEvent::Resized(w, h), ..} => {
                     viewport.update_size(w, h);
                     viewport.enable(&gl);
                 },
-                Event::KeyDown {keycode: Some(key), ..} => {
-                    match key {
-                        Keycode::Escape => break 'main,
-                        Keycode::D | Keycode::Right => {
-                            movement[1] = 1;
-                        },
-                        Keycode::A | Keycode::Left => {
-                            movement[3] = 1;
-                        },
-                        Keycode::W | Keycode::Up => {
-                            movement[0] = 1;
-                        },
-                        Keycode::S | Keycode::Down => {
-                            movement[2] = 1;
-                        },
-                        _ => {},
-                    }
-                },
+                Event::KeyDown {keycode: Some(key), ..} |
                 Event::KeyUp {keycode: Some(key), ..} => {
                     match key {
-                        Keycode::D | Keycode::Right => {
-                            movement[1] = 0;
-                        },
-                        Keycode::A | Keycode::Left => {
-                            movement[3] = 0;
-                        },
-                        Keycode::W | Keycode::Up => {
-                            movement[0] = 0;
-                        },
-                        Keycode::S | Keycode::Down => {
-                            movement[2] = 0;
-                        },
-                        _ => {},
+                        Keycode::Escape => break 'main,
+                        _ => input.callback(&event),
                     }
                 },
                 _ => {},
             }
         }
-        translation.x = (movement[1] - movement[3]) as f32 * 0.02;
-        translation.y = (movement[0] - movement[2]) as f32 * 0.02;
+        translation.x = (input.right - input.left) as f32 * 0.02;
+        translation.y = (input.up - input.down) as f32 * 0.02;
 
         color_buffer.clear(&gl);
         &triangle.update_pos(&translation);
