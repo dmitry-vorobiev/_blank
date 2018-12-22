@@ -8,7 +8,7 @@ extern crate vec_2_10_10_10;
 
 pub mod render_gl;
 pub mod resources;
-mod triangle;
+mod geometry;
 mod debug;
 mod input;
 
@@ -53,7 +53,7 @@ fn run() -> Result<(), failure::Error> {
 
     let res = Resources::from_relative_exe_path(Path::new("assets"))?;
     let mut input = input::Input::new();
-    let mut triangle = triangle::Triangle::new(&res, &gl)?;
+    let mut square = geometry::Square::new(&res, &gl)?;
     let mut translation = na::Vector3::new(0.0, 0.0, 0.0);
 
     let mut event_pump = sdl.event_pump().unwrap();
@@ -82,8 +82,8 @@ fn run() -> Result<(), failure::Error> {
         translation.y = (input.up - input.down) as f32 * 0.02;
 
         color_buffer.clear(&gl);
-        &triangle.update_pos(&translation);
-        triangle.render(&gl);
+        &square.update_pos(&translation);
+        square.render(&gl);
         window.gl_swap_window();
     }
 

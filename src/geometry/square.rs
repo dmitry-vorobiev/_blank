@@ -1,31 +1,23 @@
 use gl;
 use failure;
 use nalgebra as na;
-use render_gl::{self, buffer, data};
+use render_gl::{self, buffer};
 use resources::Resources;
+use geometry::vertex::Vertex;
 
-#[derive(VertexAttribPointers)]
-#[derive(Copy, Clone, Debug)]
-#[repr(C, packed)]
-struct Vertex {
-    #[location = "0"]
-    pos: data::f32_f32_f32,
-    #[location = "1"]
-    clr: data::u2_u10_u10_u10_rev_float,
-}
-
-pub struct Triangle {
+pub struct Square {
     model_matrix: na::Matrix4<f32>,
     program: render_gl::Program,
     _vbo: buffer::VertexBuffer,
+    _ibo: buffer::ElementArray,
     vao: buffer::VertexArray,
 }
 
-impl Triangle {
-    pub fn new(res: &Resources, gl: &gl::Gl) -> Result<Triangle, failure::Error> {
+impl Square {
+    pub fn new(res: &Resources, gl: &gl::Gl) -> Result<Square, failure::Error> {
         let program = render_gl::Program::from_res(gl, res, "shaders/triangle")?;
 
-        let vertices: [Vertex; 3] = [
+        let vertices: [Vertex; 4] = [
             Vertex {
                 pos: (0.5, -0.5, 0.0).into(),
                 clr: (1.0, 0.0, 0.0, 1.0).into()
@@ -35,9 +27,18 @@ impl Triangle {
                 clr: (0.0, 1.0, 0.0, 1.0).into()
             }, // bottom left
             Vertex {
-                pos: (0.0,  0.5, 0.0).into(),
+                pos: (-0.5,  0.5, 0.0).into(),
                 clr: (0.0, 0.0, 1.0, 1.0).into()
-            }  // top
+            },  // top left
+            Vertex {
+                pos: (0.5,  0.5, 0.0).into(),
+                clr: (0.0, 1.0, 0.0, 1.0).into()
+            },  // top right
+        ];
+
+        let indices: [u8; 6] = [
+            0, 1, 2,
+            2, 3, 0
         ];
 
         let vao = buffer::VertexArray::new(gl);
@@ -46,15 +47,21 @@ impl Triangle {
         let vbo = buffer::VertexBuffer::new(gl);
         vbo.bind();
 
+        let ibo = buffer::ElementArray::new(gl);
+        ibo.bind();
+
+        ibo.static_draw_data(&indices);
         vbo.static_draw_data(&vertices);
         Vertex::vertex_attrib_pointers(gl);
         vao.unbind();
         vbo.unbind();
+        ibo.unbind();
 
-        Ok(Triangle {
-            model_matrix: na::Matrix4::new_scaling(0.33),
+        Ok(Square {
+            model_matrix: na::Matrix4::new_scaling(0.5),
             program,
             _vbo: vbo,
+            _ibo: ibo,
             vao,
         })
     }
@@ -70,7 +77,12 @@ impl Triangle {
         self.vao.bind();
 
         unsafe {
-            gl.DrawArrays(gl::TRIANGLES, 0, 3);
+            gl.DrawElements(
+                gl::TRIANGLES,
+                6,
+                gl::UNSIGNED_BYTE,
+                0 as *const gl::types::GLvoid
+            );
         }
     }
 }
